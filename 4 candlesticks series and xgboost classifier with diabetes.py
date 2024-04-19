@@ -119,36 +119,205 @@ print(data)
 
 existing_df = pd.DataFrame(data)
 
-value1, value2 = df.index[1].split('_')
 print(existing_df)
 
 
-print(str(existing_df.loc[1,'key']).split('M'))
 
-for i in str(existing_df.loc[1,'key']).split('M'):
-    # print(type(i))
-    # i.split("']")
+
+
+# ----------------------------
+
+
+
+
+# value1, value2 = existing_df.index[1].split('_')
+for i in existing_df.index:
+    yearmonthlist = str(existing_df.loc[i,'key']).split('M')
+    year = yearmonthlist[0][-4:]
+    month = yearmonthlist[1][-4:-2]
+    existing_df.loc[i,'year'] = year
+    existing_df.loc[i,'month'] = month
+    scbkpisubgroup = str(existing_df.loc[i,'key']).split("['")
     
-    yearmonth = i[-4:].split("']")
-    # month = i[-4:].split("']")[1]
-    # print(type(yearmonth))
-    print(yearmonth[0] +'-'+ yearmonth[1])
+    scbkpisubgroup = scbkpisubgroup[1][0:2]
+    # print(scbkpisubgroup)
+    
+    existing_df.loc[i,'scbkpisubgroup'] = scbkpisubgroup
 
+# print(existing_df['year'])
+def generate_daily_dates_df(year, month):
+    import datetime
+    days_in_month = (datetime.datetime(year, month + 1, 1) - datetime.datetime(year, month, 1)).days
+
+    month_return_dataframe = pd.date_range(start=pd.Timestamp(year=year, month=month, day=1),
+                        periods=days_in_month).to_frame(name='dates')
+
+    month_return_dataframe['year'] = year
+
+    month_return_dataframe['month'] = month
+
+    return month_return_dataframe
+
+
+print(existing_df)
+>>> print(existing_df)
+#                key    values  year month scbkpisubgroup
+# 0    [01, 2019M05]  [318.87]  2019    05             01
+# 1    [01, 2019M06]  [319.21]  2019    06             01
+# 2    [01, 2019M07]  [325.89]  2019    07             01
+# 3    [01, 2019M08]  [323.01]  2019    08             01
+# 4    [01, 2019M09]  [322.68]  2019    09             01
+# ..             ...       ...   ...   ...            ...
+# 703  [12, 2023M11]  [483.01]  2023    11             12
+# 704  [12, 2023M12]  [483.67]  2023    12             12
+# 705  [12, 2024M01]  [491.20]  2024    01             12
+# 706  [12, 2024M02]  [494.24]  2024    02             12
+# 707  [12, 2024M03]  [495.96]  2024    03             12
+print(type(existing_df))
+print(existing_df[existing_df['month'] == '06'])
+print(existing_df.dtypes)
+
+
+existing_df['kpivalue'] = existing_df['values'] 
+
+column_names = existing_df.columns.tolist()
+print(column_names)
+
+for i in range(2,13,1):
+    print(i)
 
 import pandas as pd
 
-# Sample DataFrame
-data = {'col1': ['apple_1234', 'banana_5678', 'cherry_9012']}
-df = pd.DataFrame(data)
-
-# Extract last 4 characters
-df['last_4'] = df['col1'].str[-4:]
-
-print(df)
+# Sample DataFrame (replace with your actual data)
+# data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9], 'col2': ['A', 'A', 'A', 'B', 'B', 'C', 'C', 'C', 'A'], 'category_col': ['cat1', 'cat1', 'cat2', 'cat1', 'cat2', 'cat3', 'cat3', 'cat1', 'cat2']}
+# df = pd.DataFrame(data)
 
 
+existing_df['values'] = existing_df['values'].apply(lambda x: x[0])
+existing_df['scbkpisubgroup'] = existing_df['scbkpisubgroup'].apply(lambda x: int(x))
+existing_df2 = existing_df.set_index(['year', 'month'])
 
 
+
+# existing_df = existing_df.set_index(['year', 'month', 'scbkpisubgroup'])
+# existing_df = existing_df.set_index(['year', 'month', 'scbkpisubgroup'])
+
+# existing_df.set_index(new_index, inplace=True)
+
+print(existing_df)
+
+print(existing_df2)
+
+pivot_var = 'scbkpisubgroup'
+value_cols = 'values'
+
+existing_df2.drop('key', axis=1, inplace=True)
+
+
+pivoted_df = existing_df2.set_index([pivot_var, existing_df2.index]).unstack(fill_value=None)  # Replace -11414 with a missing value indicator (optional)
+print(pivoted_df.T)
+# pivoted_dataframe = existing_df2.pivot_table(index=pivot_var, values=value_cols)
+
+# del transposed_dataframe
+
+# transposed_dataframe = existing_df[existing_df['scbkpisubgroup'] == 1 ]
+
+# transposed_dataframe2 = existing_df.set_index(['year', 'month', 'scbkpisubgroup'])
+
+
+
+# print(transposed_dataframe)
+
+# for i in existing_df.index.get_level_values('scbkpisubgroup'):
+
+#     transposed_dataframe
+#     transposed_dataframe = pd.concat([transposed_dataframe, existing_df], ignore_index=False)
+#     print(existing_df.index[i])
+#     # transposed_dataframe = existing_df[existing_df[i] == 1]
+
+
+
+
+
+
+# print(transposed_dataframe)
+
+# Split by category (assuming 12 unique values)
+for index, row in existing_df.iterrows():
+  value = row['scbkpisubgroup']  # Extract the value from the column
+  print(value)
+  for i in range(2,13,1):
+      if value == i:
+          transposed_dataframe = pd.concat([transposed_dataframe, existing_df], ignore_index=False)
+          # transposed_dataframe = transposed_dataframe.merge(existing_df,  on=['year', 'month'])
+
+print(transposed_dataframe)
+
+# Access individual DataFrames by category
+for category, df_part in split_dfs.items():
+  print(f"DataFrame for category: {category}")
+  print(df_part)
+
+for i in existing_df['key']:
+    for i in range(1,12,1):
+        if existing_df.loc[i,'kpisubgroup'] == 
+    
+    
+    
+import numpy as np
+
+# def convert_to_float(x):
+#   try:
+#     # Remove leading/trailing spaces
+#     return float(x[0].strip().lstrip('0'))  # Explicitly remove leading zeros
+#   except (ValueError, IndexError):
+#     return np.nan  # Return NaN for errors
+
+# existing_df['values'] = existing_df['values'].apply(convert_to_float)
+
+
+# try:
+#   existing_df['values'] = pd.to_numeric(existing_df['values'], errors='coerce')  # Coerce errors to NaN
+# except:
+#   pass
+
+def get_first_value_as_string(x):
+  return str(x[0])  # Explicitly cast to string
+
+# Reshape with custom aggregation
+out = df.pivot_table(values='values', index=['year', 'month'], columns='scbkpisubgroup', aggfunc=get_first_value_as_string)
+
+# Now 'out' contains the entire string values
+print(out)
+
+out = existing_df.pivot_table(values='kpivalue', index=['year', 'month'], columns='scbkpisubgroup', fill_value=0)
+print(out)
+print(type(out))
+
+
+for i in 
+appended_df = pd.concat([appended_df, merged_df], ignore_index=False)
+
+
+daily_dates_df = generate_daily_dates_df(2024, 3)
+print(daily_dates_df)
+print(existing_df)
+merged_df = existing_df.merge(daily_dates_df,  on=['year', 'month'])
+
+for i in existing_df.index:
+    print(existing_df.loc[i])
+    year = int(existing_df.loc[i,'year'])
+    month = int(existing_df.loc[i,'month'])
+    print(year)
+    print(month)
+    # daily_dates_df = generate_daily_dates_df(year, month)
+    # print(daily_dates_df)
+    # merged_df = existing_df.merge(daily_dates_df,  on=['year', 'month'])
+    # print(merged_df)
+    # appended_df = pd.concat([appended_df, merged_df], ignore_index=False)
+
+
+# print(appended_df)
 
 
 
@@ -203,9 +372,9 @@ for ticker in tickers:
     # df = df.append(dfappend)
     df = pd.concat([df, dfappend], ignore_index=False)
     # df = pd.concat([df, data])
-    # print(f'({df.head(5)})')
+    print(f'({df.head(5)})')
     # Print the first 5 rows of data for each symbol
-    merged_df = existing_df.merge(df, how='outer', on=dfappend.index)
+    merged_df = existing_df.merge(df, how='outer', on=['year', 'month'])
     print(merged_df)
     fig.add_trace(pl.Candlestick(
         x=dfappend.index,  # Use the index (date) as the x-axis
